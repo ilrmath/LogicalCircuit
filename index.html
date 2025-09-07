@@ -313,27 +313,60 @@
   function drawVenn(spec, canvas, overlay, rect){
     const ctx=canvas.getContext('2d');
     const W=canvas.width, H=canvas.height;
-    const r = rect || {x:0,y:0,w:W,h:H};
-    ctx.clearRect(r.x, r.y, r.w, r.h);
+    const rct = rect || {x:0,y:0,w:W,h:H};
+    ctx.clearRect(rct.x, rct.y, rct.w, rct.h);
     ctx.save();
-    ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip(); ctx.translate(r.x, r.y);
-    const w=r.w, h=r.h;
+    ctx.beginPath(); ctx.rect(rct.x, rct.y, rct.w, rct.h); ctx.clip(); ctx.translate(rct.x, rct.y);
+    const w=rct.w, h=rct.h;
+
     const fillExpect='rgba(204,255,0,0.55)';
     const hatchFill='rgba(239,68,68,0.85)';
     ctx.lineWidth=2; ctx.strokeStyle='#e5e7eb';
 
-    // ---- 共通ジオメトリ（spec/overlay/輪郭 で完全一致させる）
+    // ---- 共通ジオメトリ
     const gvars = overlay?.vars || spec?.vars || 2;
-    const aspect=w/h;
-    const r2 = (aspect>1.4) ? Math.min(h*0.33, w*0.22) : Math.min(w,h)*0.24;
-    const A2={x:(aspect>1.4? w*0.42 : w*0.37), y:h*0.5, r:r2}, B2={x:(aspect>1.4? w*0.58 : w*0.63), y:h*0.5, r:r2};
-    const r3=Math.min(w,h)*0.24;
-    const A3={x:w*0.37,y:h*0.42,r:r3}, B3={x:w*0.63,y:h*0.42,r:r3}, C3={x:w*0.50,y:h*0.72,r:r3};
-    const inside=(p,x,y)=>{ const dx=x-p.x, dy=y-p.y; return (dx*dx+dy*dy)<=p.r*p.r; };
 
-    function evalSpecAt(s, x, y){ if(!s) return false; if(s.vars===1){ const a=inside(A2,x,y); return s.fn(a?1:0); } if(s.vars===2){ const a=inside(A2,x,y), b=inside(B2,x,y); return s.fn(a?1:0,b?1:0); } const a=inside(A3,x,y), b=inside(B3,x,y), c=inside(C3,x,y); return s.fn(a?1:0,b?1:0,c?1:0); }
+    // 外周マージン（ベン図が枠からはみ出ないように）
+    const shortSide = Math.min(w, h);
+    const p = Math.max(6, Math.round(shortSide * 0.06));
 
-    // ---- 描画（期待=黄緑 / 回路=赤ハッチ）
+    /* ===== 2変数（A,B） ===== */
+    // A∩Bを見やすく大きくしつつ、確実に枠内へ収める
+    const k2 = 0.80; // 中心間隔 = k2 * r2（小さいほど重なる）
+    const r2 = Math.min((w/2 - p) / (1 + k2), (h/2 - p));
+    const cx2 = w * 0.5, cy2 = h * 0.5, dx2 = k2 * r2;
+    const A2 = { x: cx2 - dx2, y: cy2, r: r2 };
+    const B2 = { x: cx2 + dx2, y: cy2, r: r2 };
+
+    /* ===== 3変数（A,B,C） ===== */
+    // 写真の構図：A を上、B を左下、C を右下。交差を大きく。
+    // A と B/C の中心距離 d = k3 * r3、B/C の水平ずれ dx = a3 * r3、
+    // 垂直ずれ vy = sqrt(d^2 - dx^2) から配置を決定。
+    const k3 = 0.95;   // d = 0.95 r3（強い交差）
+    const a3 = 0.55;   // dx = 0.55 r3
+    const vyRatio = Math.sqrt(Math.max(0, k3*k3 - a3*a3));
+    // はみ出し防止のため r3 の上限を水平／垂直の両方から算出
+    const r3MaxHoriz = (w/2 - p) / (1 + a3);
+    const r3MaxVert  = (h - 2*p) / (2 + vyRatio); // Aの半径 + 縦ずれ + B/Cの半径
+    const r3 = Math.max(6, Math.min(r3MaxHoriz, r3MaxVert));
+    const cx3 = w * 0.5;
+    const dx3 = a3 * r3;
+    const vy  = vyRatio * r3;
+    const yTop = p + r3; // A の中心（上）
+    const A3 = { x: cx3,       y: yTop,      r: r3 };
+    const B3 = { x: cx3 - dx3, y: yTop + vy, r: r3 };
+    const C3 = { x: cx3 + dx3, y: yTop + vy, r: r3 };
+
+    const inside=(pnt,x,y)=>{ const dx=x-pnt.x, dy=y-pnt.y; return (dx*dx+dy*dy)<=pnt.r*pnt.r; };
+
+    function evalSpecAt(s, x, y){
+      if(!s) return false;
+      if(s.vars===1){ const a=inside(A2,x,y); return s.fn(a?1:0); }
+      if(s.vars===2){ const a=inside(A2,x,y), b=inside(B2,x,y); return s.fn(a?1:0,b?1:0); }
+      const a=inside(A3,x,y), b=inside(B3,x,y), c=inside(C3,x,y); return s.fn(a?1:0,b?1:0,c?1:0);
+    }
+
+    // ---- 塗り（期待=黄緑 / 回路=赤ハッチ）
     const step=1;
     if(spec){ ctx.fillStyle=fillExpect; for(let y=0;y<h;y+=step){ for(let x=0;x<w;x+=step){ if(evalSpecAt(spec,x,y)){ ctx.fillRect(x,y,step,step); } } } }
     if(overlay){ ctx.fillStyle=hatchFill; const period=8, thick=3; for(let y=0;y<h;y+=step){ for(let x=0;x<w;x+=step){ if(evalSpecAt(overlay,x,y) && ((x+y)%period < thick)){ ctx.fillRect(x,y,step,step); } } } }
@@ -341,27 +374,45 @@
     // ---- 輪郭
     ctx.fillStyle='#cbd5e1'; ctx.font='12px system-ui';
     if(gvars===1){ ctx.beginPath(); ctx.arc(A2.x,A2.y,A2.r,0,Math.PI*2); ctx.stroke(); ctx.fillText('A', A2.x-6, A2.y-A2.r-6); }
-    if(gvars===2){ ctx.beginPath(); ctx.arc(A2.x,A2.y,A2.r,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(B2.x,B2.y,B2.r,0,Math.PI*2); ctx.stroke(); ctx.fillText('A', A2.x-6, A2.y-A2.r-6); ctx.fillText('B', B2.x-6, B2.y-B2.r-6); }
-    if(gvars===3){ ctx.beginPath(); ctx.arc(A3.x,A3.y,A3.r,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(B3.x,B3.y,B3.r,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(C3.x,C3.y,C3.r,0,Math.PI*2); ctx.stroke(); ctx.fillText('A', A3.x-6, A3.y-A3.r-6); ctx.fillText('B', B3.x-6, B3.y-B3.r-6); ctx.fillText('C', C3.x-6, C3.y-C3.r-6); }
+    if(gvars===2){
+      ctx.beginPath(); ctx.arc(A2.x,A2.y,A2.r,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(B2.x,B2.y,B2.r,0,Math.PI*2); ctx.stroke();
+      ctx.fillText('A', A2.x-6, A2.y-A2.r-6); ctx.fillText('B', B2.x-6, B2.y-B2.r-6);
+    }
+    if(gvars===3){
+      ctx.beginPath(); ctx.arc(A3.x,A3.y,A3.r,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(B3.x,B3.y,B3.r,0,Math.PI*2); ctx.stroke();
+      ctx.beginPath(); ctx.arc(C3.x,C3.y,C3.r,0,Math.PI*2); ctx.stroke();
+      ctx.fillText('A', A3.x-6, A3.y-A3.r-6);
+      ctx.fillText('B', B3.x-6, B3.y-B3.r-6);
+      ctx.fillText('C', C3.x-6, C3.y-C3.r-6);
+    }
     ctx.restore();
   }
 
   function findByLabel(label){ for(const n of nodes.values()){ const t=n.el.querySelector('.head span').textContent.trim(); if(t===label) return n; } return null; }
-  function listConnectedOutLEDs(){ const list=[]; nodes.forEach(n=>{ if(n.type==='led'){ const label=n.el.querySelector('.head span').textContent.trim(); const connected=[...wires.values()].some(w=>w.to.id===n.id); if(connected && (label==='Out'||label==='OUT'||label==='Out2')) list.push(n); } }); return list; }
+  function listConnectedOutLEDs(){
+    const list=[];
+    nodes.forEach(n=>{
+      if(n.type==='led'){
+        const label=n.el.querySelector('.head span').textContent.trim();
+        const connected=[...wires.values()].some(w=>w.to.id===n.id);
+        if(connected && (label==='Out'||label==='OUT'||label==='Out2')) list.push(n);
+      }
+    });
+    return list;
+  }
 
   // ====== フリーモードのベン図 ======
   function buildOverlayFor(ledNode){
-    // A,B,C の現在の論理式を LED まで伝播した結果を、A/B/C のみの式として評価するため
-    // 簡略化：ベン図側では A,B,C のみを使い、現在の回路の真理値表を総当たり評価
+    // A,B,C のみで総当たり評価して LED の真理値を返す
     const toggles=['A','B','C'].map(findByLabel).filter(Boolean);
     const vars=toggles.length; if(vars===0) return {vars:1, fn:()=>false};
     function evalFor(a,b,c){
-      // 入力を設定して一瞬シミュレーション
       const save=toggles.map(t=>t.value);
       const vals=[a,b,c]; toggles.forEach((t,i)=>{ t.value=!!vals[i]; });
-      simulateInternal(); // 内部のみ
-      const v=!!ledNode.value; // LEDの値
-      // 戻す
+      simulateInternal();
+      const v=!!ledNode.value;
       toggles.forEach((t,i)=>{ t.value=save[i]; }); simulateInternal();
       return v?1:0;
     }
@@ -369,12 +420,32 @@
   }
   function simulateInternal(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } }
 
-  function renderVennFree(){ const leds=listConnectedOutLEDs(); const rects=getRectsForLEDs(leds.length||1); const ctx=venn.getContext('2d'); ctx.clearRect(0,0,venn.width,venn.height); if(leds.length===0){ drawVenn({vars:2,fn:()=>false}, venn, null); return; } leds.forEach((led,i)=>{ const overlay=buildOverlayFor(led); drawVenn(null, venn, overlay, rects[i]); }); }
+  function renderVennFree(){
+    const leds=listConnectedOutLEDs();
+    const rects=getRectsForLEDs(leds.length||1);
+    const ctx=venn.getContext('2d');
+    ctx.clearRect(0,0,venn.width,venn.height);
+    if(leds.length===0){ drawVenn({vars:2,fn:()=>false}, venn, null); return; }
+    leds.forEach((led,i)=>{ const overlay=buildOverlayFor(led); drawVenn(null, venn, overlay, rects[i]); });
+  }
 
   // ====== クイズのベン図 ======
-  function renderVennById(id){ const leds=listConnectedOutLEDs(); const rects=getRectsForLEDs(leds.length||1); const ctx=venn.getContext('2d'); ctx.clearRect(0,0,venn.width,venn.height); if(!id){ drawVenn({vars:2,fn:()=>false},venn,null); return; } const q=quizzes[id]; if(!q){ return; } const overlay=(leds[0])? buildOverlayFor(leds[0]) : null; drawVenn({vars:q.vars, fn:q.spec}, venn, overlay, rects[0]); if(leds.length>1){ const overlay2=buildOverlayFor(leds[1]); drawVenn({vars:q.vars, fn:q.spec}, venn, overlay2, rects[1]); } }
+  function renderVennById(id){
+    const leds=listConnectedOutLEDs();
+    const rects=getRectsForLEDs(leds.length||1);
+    const ctx=venn.getContext('2d');
+    ctx.clearRect(0,0,venn.width,venn.height);
+    if(!id){ drawVenn({vars:2,fn:()=>false},venn,null); return; }
+    const q=quizzes[id]; if(!q){ return; }
+    const overlay=(leds[0])? buildOverlayFor(leds[0]) : null;
+    drawVenn({vars:q.vars, fn:q.spec}, venn, overlay, rects[0]);
+    if(leds.length>1){
+      const overlay2=buildOverlayFor(leds[1]);
+      drawVenn({vars:q.vars, fn:q.spec}, venn, overlay2, rects[1]);
+    }
+  }
 
-  // ====== ガイド描画 ======
+  // ====== ガイド描画（従来のまま） ======
   function drawGuideAll(){ drawGuideAND(); drawGuideOR(); drawGuideXOR(); drawGuideNAND(); drawGuideNOT(); }
   function gc(id){ return document.getElementById(id).getContext('2d'); }
   function venn2(ctx){ const w=ctx.canvas.width, h=ctx.canvas.height; const aspect=w/h; const r=(aspect>1.4)? Math.min(h*0.33, w*0.22) : Math.min(w,h)*0.24; const A={x:(aspect>1.4? w*0.42 : w*0.37), y:h*0.5, r:r}, B={x:(aspect>1.4? w*0.58 : w*0.63), y:h*0.5, r:r}; return {A,B,w,h}; }
