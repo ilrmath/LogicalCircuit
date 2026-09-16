@@ -79,18 +79,14 @@
   /* ランプカード：OFF=消灯（灰色）／ON=強く発光 */
   .node.lamp{min-width:124px;transition:box-shadow .2s, border-color .2s, background .2s}
   .node.lamp .head{gap:14px}
-  .node.lamp .head span:first-child::after{content:"💡";display:inline-block;margin:0 6px 0 8px;font-size:15px;line-height:1;padding:4px;border-radius:50%;vertical-align:middle;filter:grayscale(1) brightness(.55);opacity:.6;transition:filter .2s, opacity .2s, transform .2s, background .2s}
-  .node.lamp.lit{border-color:#facc15;background:radial-gradient(120% 90% at 50% 0%,#4a3a07 0%,#1c1a0e 55%,#0b1324 100%);box-shadow:0 0 0 2px rgba(250,204,21,.65),0 0 22px 6px rgba(250,204,21,.55),0 0 60px 18px rgba(250,204,21,.28),0 10px 25px rgba(0,0,0,.3);animation:lampCard 1.4s ease-in-out infinite}
-  .node.lamp.lit .head{border-bottom-color:#fde047}
-  .node.lamp.lit .head span:first-child{color:#fef9c3;text-shadow:0 0 8px rgba(253,224,71,.9)}
-  .node.lamp.lit .head span:first-child::after{opacity:1;transform:scale(1.35);filter:brightness(1.25) saturate(1.3) drop-shadow(0 0 3px #fff7ae) drop-shadow(0 0 8px #fde047) drop-shadow(0 0 16px #facc15);background:radial-gradient(circle,rgba(255,251,200,.95) 0%,rgba(253,224,71,.75) 35%,rgba(250,204,21,.25) 60%,rgba(250,204,21,0) 72%);animation:lampPulse 1.4s ease-in-out infinite}
-  .node.lamp.lit .led.on{box-shadow:0 0 14px 4px rgba(239,68,68,.75),0 0 30px 8px rgba(250,204,21,.45),inset 0 0 10px rgba(255,255,255,.35)}
+  .node.lamp .head span:first-child::after{content:"💡";display:inline-block;margin:0 6px 0 8px;font-size:15px;line-height:1;vertical-align:middle;filter:grayscale(1) brightness(.55);opacity:.6;transition:filter .2s, opacity .2s}
+  .node.lamp.lit{border-color:#facc15;box-shadow:0 0 0 2px rgba(250,204,21,.6),0 0 20px 6px rgba(250,204,21,.5),0 0 48px 14px rgba(250,204,21,.25),0 10px 25px rgba(0,0,0,.3);animation:lampCard 2.4s ease-in-out infinite}
+  .node.lamp.lit .head span:first-child::after{opacity:1;filter:none}
   @keyframes lampCard{
-    0%,100%{box-shadow:0 0 0 2px rgba(250,204,21,.7),0 0 24px 7px rgba(250,204,21,.6),0 0 64px 20px rgba(250,204,21,.32),0 10px 25px rgba(0,0,0,.3);filter:brightness(1.08)}
-    50%{box-shadow:0 0 0 2px rgba(250,204,21,.4),0 0 14px 3px rgba(250,204,21,.32),0 0 36px 10px rgba(250,204,21,.14),0 10px 25px rgba(0,0,0,.3);filter:brightness(.94)}
+    0%,100%{box-shadow:0 0 0 2px rgba(250,204,21,.7),0 0 24px 7px rgba(250,204,21,.58),0 0 56px 16px rgba(250,204,21,.3),0 10px 25px rgba(0,0,0,.3)}
+    50%{box-shadow:0 0 0 2px rgba(250,204,21,.42),0 0 14px 4px rgba(250,204,21,.32),0 0 34px 9px rgba(250,204,21,.13),0 10px 25px rgba(0,0,0,.3)}
   }
-  @keyframes lampPulse{0%,100%{transform:scale(1.3)}50%{transform:scale(1.45)}}
-  @media (prefers-reduced-motion: reduce){ .node.lamp.lit, .node.lamp.lit .head span:first-child::after{animation:none} }
+  @media (prefers-reduced-motion: reduce){ .node.lamp.lit{animation:none} }
   .led.on{background:radial-gradient(circle at 50% 35%,#ff6d6d,#b91c1c 60%,#7f1d1d);box-shadow:0 0 18px rgba(239,68,68,.55),inset 0 0 10px rgba(255,255,255,.25)}
 
   /* 右パネル */
