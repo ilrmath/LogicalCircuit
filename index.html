@@ -7,18 +7,23 @@
 <style>
   :root{ --neon:#ccff00; --hatch:#ef4444; --grid:#e5e7eb; }
   *{box-sizing:border-box}
-  body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:#0b1220;color:#e5e7eb}
-  header{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #1f2937}
+  body{margin:0;height:100vh;display:flex;flex-direction:column;overflow:hidden;font-family:system-ui,-apple-system,Segoe UI,Roboto,"Hiragino Kaku Gothic ProN",Meiryo,sans-serif;background:#0b1220;color:#e5e7eb}
+  header{flex:none;flex-wrap:wrap;display:flex;gap:6px;align-items:center;padding:10px 12px;border-bottom:1px solid #1f2937}
   h1{margin:0 8px 0 0;font-size:15px;font-weight:800}
   .spacer{flex:1}
   .btn{appearance:none;border:1px solid #374151;background:#0b1324;color:#e5e7eb;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px;white-space:nowrap}
   .btn.primary{background:#1e293b;border-color:#475569}
   .btn.good{background:#052e16;border-color:#14532d}
   .btn.toggle.active{background:var(--neon);border-color:var(--neon);color:#111827}
-  .btn.mode{padding:10px 20px;font-size:14px;border-radius:9999px;min-width:160px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+  .btn.mode{padding:9px 16px;font-size:14px;border-radius:9999px;min-width:96px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+  .btn.quiz{padding:7px 0;min-width:28px;text-align:center}
+  .qgrp{font-size:10px;font-weight:700;color:#94a3b8;margin:0 1px 0 6px;white-space:nowrap}
+  .qgrp:first-child{margin-left:0}
+  #quizBar{align-items:center}
   .btn.quiz.active{background:var(--neon);border-color:var(--neon);color:#111827}
 
-  .layout{display:grid;grid-template-columns:260px 1fr 340px;height:calc(100vh - 56px)}
+  .layout{display:grid;grid-template-columns:260px 1fr 340px;flex:1;min-height:0}
+  footer{flex:none}
   /* 左パレット */
   #palette{background:#111827;border-right:1px solid #1f2937;padding:12px;overflow:auto}
   .item{display:flex;align-items:center;gap:8px;padding:9px;border:1px dashed #374151;border-radius:10px;margin-bottom:8px;cursor:grab;background:#0b1324;user-select:none}
@@ -35,6 +40,8 @@
   #wires path.hit{fill:none;stroke:transparent;stroke-width:16;opacity:1;filter:none;cursor:pointer;pointer-events:stroke}
   #wires g:hover path.vis{stroke:#f59e0b;filter:drop-shadow(0 0 3px rgba(245,158,11,.7))}
   #wires path.vis{pointer-events:none;stroke:#60a5fa;stroke-width:4;fill:none;opacity:.95;filter:drop-shadow(0 0 2px rgba(96,165,250,.7))}
+  #wires path.vis{transition:stroke .12s, filter .12s}
+  #wires path.vis.on{stroke:#ff7eb6;filter:drop-shadow(0 0 3px rgba(255,126,182,.75))}
   #wires path.vis.selected{stroke:var(--neon);stroke-width:5;opacity:1;filter:drop-shadow(0 0 4px rgba(204,255,0,.6))}
   #wireDel{position:absolute;z-index:4;display:none;transform:translate(-50%,-50%);appearance:none;border:1px solid #b91c1c;background:#ef4444;color:#fff;font-weight:800;font-size:12px;padding:4px 9px;border-radius:999px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.35);white-space:nowrap}
   #wireDel:hover{background:#dc2626}
@@ -57,6 +64,8 @@
   .toggle.on .knob{left:22px;background:#ff7eb6}
 
   .led{width:18px;height:18px;border-radius:50%;background:#1f2937;border:2px solid #0b1220;box-shadow:inset 0 0 14px rgba(0,0,0,.5)}
+  .node.lamp .head span:first-child::after{content:"💡";margin-left:5px;font-size:13px;display:inline-block;transition:filter .15s}
+  .node.lamp.lit .head span:first-child::after{filter:drop-shadow(0 0 5px rgba(250,204,21,.95))}
   .led.on{background:radial-gradient(circle at 50% 35%,#ff6d6d,#b91c1c 60%,#7f1d1d);box-shadow:0 0 18px rgba(239,68,68,.55),inset 0 0 10px rgba(255,255,255,.25)}
 
   /* 右パネル */
@@ -71,7 +80,7 @@
   .gcan{display:block;max-width:100%;margin:0 auto;border:1px dashed #374151;border-radius:8px}
 
   footer{height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px;border-top:1px solid #1f2937;background:#0b1220;font-size:12px;color:#cbd5e1}
-  #quizBar{display:none;gap:6px;flex-wrap:wrap}
+  #quizBar{display:none;gap:4px;flex-wrap:wrap}
 
   /* ===== ゲート記号 ===== */
   .sym{display:block;overflow:visible}
@@ -79,6 +88,8 @@
   .sym .arc2{fill:none;stroke:#e2e8f0;stroke-width:2.4}
   .sym .lead{fill:none;stroke:#94a3b8;stroke-width:2.4;stroke-linecap:round;transition:stroke .12s}
   .sym .lead.hi{stroke:#ff7eb6}
+  .node .sym .lead{stroke:#60a5fa}
+  .node .sym .lead.hi{stroke:#ff7eb6}
   .sym .nm{fill:#e2e8f0;font-weight:800;font-size:9.5px;text-anchor:middle;dominant-baseline:central;font-family:inherit}
   .item .sym{flex:none}
   .mini-toggle{flex:none;width:40px;height:22px;display:flex;align-items:center;justify-content:center}
@@ -127,6 +138,7 @@
   .tt-sub{margin:10px 0 4px;color:#9ca3af;font-size:11px;font-weight:700}
 
   /* 名前を隠す（形だけで見分ける練習） */
+  #btnCheck{margin-left:4px}
   #btnHideNames.active{background:#fbbf24;border-color:#fbbf24;color:#111827}
   .hide-names .gname{font-size:0 !important}
   .hide-names .gname::after{content:"？";font-size:13px;color:#fbbf24}
@@ -140,14 +152,21 @@
   <button class="btn toggle mode" id="btnModeQuiz">クイズ</button>
   <div class="spacer"></div>
   <div id="quizBar">
+    <span class="qgrp">基本</span>
     <button class="btn quiz" data-quiz="1">1</button>
     <button class="btn quiz" data-quiz="2">2</button>
     <button class="btn quiz" data-quiz="3">3</button>
     <button class="btn quiz" data-quiz="4">4</button>
     <button class="btn quiz" data-quiz="5">5</button>
+    <span class="qgrp">組合せ</span>
     <button class="btn quiz" data-quiz="6">6</button>
     <button class="btn quiz" data-quiz="7">7</button>
     <button class="btn quiz" data-quiz="8">8</button>
+    <span class="qgrp">3入力</span>
+    <button class="btn quiz" data-quiz="9">9</button>
+    <button class="btn quiz" data-quiz="10">10</button>
+    <button class="btn quiz" data-quiz="11">11</button>
+    <button class="btn quiz" data-quiz="12">12</button>
     <button class="btn good" id="btnCheck">判定</button>
   </div>
   <button class="btn" id="btnHideNames" title="名前を隠して、記号の形だけで素子を見分ける練習ができます">名前を隠す</button>
@@ -216,16 +235,30 @@
   const quizBar=document.getElementById('quizBar');
   const vennCaption=document.getElementById('vennCaption');
   const quizTitleEl=document.getElementById('quizTitle');
+  // フリーモードとクイズモードは別々のキャンバスを持つ（切り替えても混ざらない）
+  const workspaces={ free:null, quiz:null };
   function setMode(next){
+    const prev=mode;
+    if(prev!==next){
+      workspaces[prev]={ json:exportJSON(), hint:hintEl.textContent, quizId: prev==='quiz'?currentQuizId:null };
+      clearAll();
+      const ws=workspaces[next];
+      if(ws && ws.json) importJSON(ws.json);
+      if(next==='quiz') currentQuizId = ws ? ws.quizId : null;
+    }
     mode=next; btnModeFree.classList.toggle('active',mode==='free'); btnModeQuiz.classList.toggle('active',mode==='quiz');
     quizBar.style.display = (mode==='quiz')? 'flex' : 'none';
-    document.querySelectorAll('.btn.quiz').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.btn.quiz').forEach(b=>b.classList.toggle('active', mode==='quiz' && b.dataset.quiz===String(currentQuizId)));
+    document.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected'));
+    const ws=workspaces[mode];
     if(mode==='free'){
       quizTitleEl.textContent='クイズ：未選択';
-      vennCaption.textContent='LEDを接続するとベン図に斜線で表示します（フリーモード）';
+      if(prev!==next) hintEl.textContent = (ws && ws.hint) || FREE_HINT_DEFAULT;
       renderVennFree();
     }else{
-      vennCaption.textContent='黄緑＝問題の領域 ／ 赤ハッチ＝あなたの回路（LEDにつないだ出力）';
+      const q=quizzes[currentQuizId];
+      quizTitleEl.textContent = q ? q.title : 'クイズ：未選択';
+      if(prev!==next) hintEl.textContent = q ? ((ws && ws.hint) || quizHint(q)) : QUIZ_HINT_NONE;
       renderVennById(currentQuizId);
     }
     renderTT();
@@ -340,6 +373,7 @@
       const right=document.createElement('div'); right.className='pins'; body.appendChild(right);
       const out=makeOut(); right.appendChild(out); base.outputs.push({el:out}); base.value=!!opts.init; const render=()=>{ toggle.classList.toggle('on',!!base.value); }; toggle.addEventListener('click',()=>{ base.value=!base.value; render(); simulate(); }); render();
     } else if(type==='led'){
+      el.classList.add('lamp');
       el.querySelector('.head span').textContent=opts.label||'Out';
       const left=document.createElement('div'); left.className='pins'; body.appendChild(left);
       const led=document.createElement('div'); led.className='led'; body.appendChild(led);
@@ -365,7 +399,7 @@
   // ====== 真理値計算 ======
   function inVal(node,i){ for(const w of wires.values()){ if(w.to.id===node.id && w.to.in===i){ const src=nodes.get(w.from.id); return !!src.value; } } return false; }
   function compute(node){ switch(node.type){ case 'toggle': return !!node.value; case 'led': return !!inVal(node,0); case 'NOT': return !inVal(node,0); case 'AND': return inVal(node,0)&&inVal(node,1); case 'OR': return inVal(node,0)||inVal(node,1); case 'XOR': return !!(inVal(node,0)^inVal(node,1)); case 'NAND': return !(inVal(node,0)&&inVal(node,1)); default: return false; } }
-  function simulate(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } nodes.forEach(n=>{ if(n.type==='led'){ n.ledEl.classList.toggle('on',!!n.value); } else if(n.leadOut){ n.leadIn.forEach((p,i)=>p.classList.toggle('hi',!!inVal(n,i))); n.leadOut.classList.toggle('hi',!!n.value); } }); if(mode==='free'){ renderVennFree(); } else { renderVennById(currentQuizId); } renderTT(); }
+  function simulate(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } wires.forEach(w=>{ const src=nodes.get(w.from.id); w.el.classList.toggle('on', !!(src&&src.value)); }); nodes.forEach(n=>{ if(n.type==='led'){ n.ledEl.classList.toggle('on',!!n.value); n.el.classList.toggle('lit',!!n.value); } else if(n.leadOut){ n.leadIn.forEach((p,i)=>p.classList.toggle('hi',!!inVal(n,i))); n.leadOut.classList.toggle('hi',!!n.value); } }); if(mode==='free'){ renderVennFree(); } else { renderVennById(currentQuizId); } renderTT(); }
 
   // ====== DnD ======
   document.querySelectorAll('#palette .item').forEach(it=>{
@@ -382,22 +416,33 @@
   // ====== エクスポート/インポート ======
   function exportJSON(){ return JSON.stringify({ nodes:[...nodes.values()].map(n=>({id:n.id,type:n.type,x:parseInt(n.el.style.left),y:parseInt(n.el.style.top),label:n.el.querySelector('.head span').textContent,value:n.type==='toggle'?!!n.value:undefined})), wires:[...wires.values()].map(w=>({id:w.id,from:w.from,to:w.to})) }, null, 2); }
   function importJSON(json){ const data=JSON.parse(json); clearAll(); const idMap=new Map(); data.nodes.forEach(n=>{ const obj=addNode(n.type,n.x,n.y,{label:n.label,init:n.value}); idMap.set(n.id,obj.id); }); data.wires.forEach(w=>{ addWire({nodeId:idMap.get(w.from.id),outIndex:w.from.out},{nodeId:idMap.get(w.to.id),inIndex:w.to.in}); }); simulate(); }
-  function clearAll(){ nodes.forEach(n=>n.el.remove()); nodes.clear(); wires.forEach(w=>w.g.remove()); wires.clear(); clearWireSelection(); updateStatus(); simulate(); }
+  function clearAll(){ clearPinHighlights(); connectMode={from:null,to:null}; nodes.forEach(n=>n.el.remove()); nodes.clear(); wires.forEach(w=>w.g.remove()); wires.clear(); clearWireSelection(); updateStatus(); simulate(); }
   document.getElementById('btnExport').addEventListener('click',()=>{ const blob=new Blob([exportJSON()],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='circuit.json'; a.click(); });
   document.getElementById('btnImport').addEventListener('click',()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.onchange=()=>{ const f=inp.files[0]; const r=new FileReader(); r.onload=()=>importJSON(r.result); r.readAsText(f); }; inp.click(); });
-  document.getElementById('btnReset').addEventListener('click',()=>{ clearAll(); if(mode==='free'){ vennCaption.textContent='LEDを接続するとベン図に斜線で表示します（フリーモード）'; } else { quizTitleEl.textContent='クイズ：未選択'; } drawVenn({vars:2, fn:()=>false}, venn, null); drawGuideAll(); });
+  document.getElementById('btnReset').addEventListener('click',()=>{ clearAll(); if(mode==='free'){ hintEl.textContent=FREE_HINT_DEFAULT; renderVennFree(); } else { const q=quizzes[currentQuizId]; hintEl.textContent=q?quizHint(q):QUIZ_HINT_NONE; renderVennById(currentQuizId); } renderTT(); drawGuideAll(); });
 
   // ====== クイズ定義 ======
   const quizzes={
-    1:{ title:'Q1：同じなら1（AとBが等しい）', explain:'AとBが同じときOut=1、違うときOut=0。推奨 ≤ 2', rec:2, vars:2, spec:(a,b)=> (a===b) },
-    2:{ title:'Q2：1つだけ1なら1', explain:'AとBのうち1つだけが1のときOut=1、それ以外は0。推奨 ≤ 1', rec:1, vars:2, spec:(a,b)=> ((a^b)===1) },
-    3:{ title:'Q3：両方1のときだけ0', explain:'AとBが両方1ならOut=0、それ以外はOut=1。推奨 ≤ 1', rec:1, vars:2, spec:(a,b)=> !(a&&b) },
-    4:{ title:'Q4：A=1かつB=0で1', explain:'Aが1でBが0のときOut=1、それ以外は0。推奨 ≤ 2', rec:2, vars:2, spec:(a,b)=> (a && !b) },
-    5:{ title:'Q5：C=1のときだけ(AまたはB)で1', explain:'C=1のときだけ、AまたはBが1ならOut=1。C=0なら必ず0。推奨 ≤ 2', rec:2, vars:3, spec:(a,b,c)=> (c && (a||b)) },
-    6:{ title:'Q6：AとBが違い かつ C=1で1', explain:'AとBが違う（どちらか一方だけ1）かつC=1のときOut=1。推奨 ≤ 2', rec:2, vars:3, spec:(a,b,c)=> (c && ((a^b)===1)) },
-    7:{ title:'Q7：どちらかが1なら0', explain:'AまたはBのどちらかでも1ならOut=0、両方0のときだけOut=1。推奨 ≤ 2', rec:2, vars:2, spec:(a,b)=> !(a||b) },
-    8:{ title:'Q8：ONの数が偶数なら1（A,B,C）', explain:'A,B,Cのうち1の数が偶数（0または2）ならOut=1、奇数なら0。推奨 ≤ 3', rec:3, vars:3, spec:(a,b,c)=> ((a^b^c)===0) }
+    // 基本：素子1つで解ける
+    1:{ level:'基本', title:'Q1：Aの反対になる', explain:'A=0のときOut=1、A=1のときOut=0。使う入力はAだけ。', rec:1, vars:1, spec:(a)=> !a },
+    2:{ level:'基本', title:'Q2：AとBが両方1のときだけ1', explain:'A=1かつB=1のときだけOut=1。それ以外は0。', rec:1, vars:2, spec:(a,b)=> (a && b) },
+    3:{ level:'基本', title:'Q3：AかBのどちらかが1なら1', explain:'AとBの少なくとも一方が1ならOut=1。両方0のときだけ0。', rec:1, vars:2, spec:(a,b)=> (a || b) },
+    4:{ level:'基本', title:'Q4：AとBのうち1つだけ1なら1', explain:'どちらか一方だけが1のときOut=1。両方0・両方1のときは0。', rec:1, vars:2, spec:(a,b)=> ((a^b)===1) },
+    5:{ level:'基本', title:'Q5：両方1のときだけ0', explain:'A=1かつB=1のときだけOut=0。それ以外は1。', rec:1, vars:2, spec:(a,b)=> !(a && b) },
+    // 組合せ：素子2つ
+    6:{ level:'組合せ', title:'Q6：両方0のときだけ1', explain:'A=0かつB=0のときだけOut=1。ヒント：Q3の答えを反対にすると？', rec:2, vars:2, spec:(a,b)=> !(a || b) },
+    7:{ level:'組合せ', title:'Q7：A=1かつB=0のときだけ1', explain:'Aが1でBが0のときだけOut=1。ヒント：Bを反対にしてから、Aと組み合わせよう。', rec:2, vars:2, spec:(a,b)=> (a && !b) },
+    8:{ level:'組合せ', title:'Q8：AとBが同じなら1', explain:'AとBが同じ（00か11）ときOut=1、違うときは0。ヒント：Q4の答えを反対にすると？', rec:2, vars:2, spec:(a,b)=> (a===b) },
+    // 3入力
+    9:{ level:'3入力', title:'Q9：A・B・Cが全部1のときだけ1', explain:'3つとも1のときだけOut=1。2入力の素子を2つつないでみよう。', rec:2, vars:3, spec:(a,b,c)=> (a && b && c) },
+    10:{ level:'3入力', title:'Q10：C=1のときだけ「AまたはB」で1', explain:'C=1で、AかBの少なくとも一方が1ならOut=1。C=0なら必ず0。', rec:2, vars:3, spec:(a,b,c)=> (c && (a||b)) },
+    11:{ level:'3入力', title:'Q11：AとBが違い、かつC=1で1', explain:'AとBのうち1つだけが1で、しかもC=1のときOut=1。', rec:2, vars:3, spec:(a,b,c)=> (c && ((a^b)===1)) },
+    12:{ level:'3入力', title:'Q12：1の数が偶数なら1', explain:'A・B・Cのうち1の個数が0個か2個ならOut=1、1個か3個なら0。', rec:3, vars:3, spec:(a,b,c)=> ((a^b^c)===0) }
   };
+  const QUIZ_HINT_NONE='上の番号からクイズを選ぼう。「基本」1〜5は素子1つで解けます。';
+  const FREE_HINT_DEFAULT='パレットから素子をドラッグして回路を作ろう。記号の形と名前をセットで覚えよう。';
+  const quizHint=q=>`【${q.level}】${q.explain}（推奨ゲート≤${q.rec}）`;
+  document.querySelectorAll('.btn.quiz').forEach(b=>{ const q=quizzes[b.dataset.quiz]; if(q) b.title=`【${q.level}】${q.title}`; });
   let currentQuizId=null;
 
   function f(label){ for(const n of nodes.values()){ if(n.el.querySelector('.head span').textContent.trim()===label) return n; } return null; }
@@ -411,7 +456,7 @@
     btn.classList.add('active');
     currentQuizId=btn.getAttribute('data-quiz');
     const q=quizzes[currentQuizId];
-    quizTitleEl.textContent=q.title; hintEl.textContent=q.explain + `（推奨ゲート≤${q.rec}）`;
+    quizTitleEl.textContent=q.title; hintEl.textContent=quizHint(q);
     renderVennById(currentQuizId);
     renderTT();
   }));
@@ -423,7 +468,7 @@
     const need=['A','B','C'].slice(0,q.vars);
     const tgs=need.map(l=>f(l));
     const out=f('Out')||f('OUT');
-    if(tgs.some(x=>!x)||!out){ hintEl.textContent='A,B(,C) と Out を配置して接続してください。'; return; }
+    if(tgs.some(x=>!x)||!out){ hintEl.textContent=`${need.join('・')} と Out を配置して接続してください。`; return; }
     const res=truthCheck(tgs,[out],q.spec);
     hintEl.textContent=(res.ok?'✅ ':'❌ ')+res.msg;
     renderVennById(currentQuizId); // overlay再計算
