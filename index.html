@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<!-- saved from url=(0525)file:///Users/kohtasekiya/Library/CloudStorage/GoogleDrive-k-sekiya@st1.shinagawajoshi.ed.jp/%E3%83%9E%E3%82%A4%E3%83%88%E3%82%99%E3%83%A9%E3%82%A4%E3%83%95%E3%82%99/%E6%83%85%E5%A0%B1I%E5%AD%A6%E7%BF%92%E3%82%A2%E3%83%95%E3%82%9A%E3%83%AA%E4%BD%9C%E6%88%90/%E8%AB%96%E7%90%86%E5%9B%9E%E8%B7%AF/%E9%81%8E%E5%8E%BB%E5%88%86/%E8%AB%96%E7%90%86%E5%9B%9E%E8%B7%AF_%E3%83%95%E3%83%AA%E3%83%BC:%E3%82%AF%E3%82%A4%E3%82%B9%E3%82%99%E7%B5%B1%E5%90%88%E7%89%88ver2(%E3%83%98%E3%82%99%E3%83%B3%E5%9B%B3%E4%BF%AE%E6%AD%A3%E7%89%88).html -->
+<html lang="ja"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>論理回路ドラッグ教材｜フリーモード＋クイズ</title>
 <style>
   :root{ --neon:#ccff00; --hatch:#ef4444; --grid:#e5e7eb; }
@@ -11,7 +11,7 @@
   header{display:flex;gap:8px;align-items:center;padding:10px 12px;border-bottom:1px solid #1f2937}
   h1{margin:0 8px 0 0;font-size:15px;font-weight:800}
   .spacer{flex:1}
-  .btn{appearance:none;border:1px solid #374151;background:#0b1324;color:#e5e7eb;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px}
+  .btn{appearance:none;border:1px solid #374151;background:#0b1324;color:#e5e7eb;padding:8px 10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:12px;white-space:nowrap}
   .btn.primary{background:#1e293b;border-color:#475569}
   .btn.good{background:#052e16;border-color:#14532d}
   .btn.toggle.active{background:var(--neon);border-color:var(--neon);color:#111827}
@@ -29,10 +29,16 @@
     repeating-linear-gradient(0deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 24px),
     repeating-linear-gradient(90deg,var(--grid) 0,var(--grid) 1px,transparent 1px,transparent 24px),
     #ffffff}
-  #stage{position:relative;width:100%;height:100%;z-index:2}
+  #stage{position:relative;width:100%;height:100%;z-index:2;pointer-events:none}
+  #stage .node{pointer-events:auto}
   #wires{position:absolute;inset:0;width:100%;height:100%;z-index:1;overflow:visible}
-  #wires path{pointer-events:stroke;stroke:#60a5fa;stroke-width:4;fill:none;opacity:.95;filter:drop-shadow(0 0 2px rgba(96,165,250,.7))}
-  #wires path.selected{stroke:var(--neon);stroke-width:5;opacity:1;filter:drop-shadow(0 0 4px rgba(204,255,0,.6))}
+  #wires path.hit{fill:none;stroke:transparent;stroke-width:16;opacity:1;filter:none;cursor:pointer;pointer-events:stroke}
+  #wires g:hover path.vis{stroke:#f59e0b;filter:drop-shadow(0 0 3px rgba(245,158,11,.7))}
+  #wires path.vis{pointer-events:none;stroke:#60a5fa;stroke-width:4;fill:none;opacity:.95;filter:drop-shadow(0 0 2px rgba(96,165,250,.7))}
+  #wires path.vis.selected{stroke:var(--neon);stroke-width:5;opacity:1;filter:drop-shadow(0 0 4px rgba(204,255,0,.6))}
+  #wireDel{position:absolute;z-index:4;display:none;transform:translate(-50%,-50%);appearance:none;border:1px solid #b91c1c;background:#ef4444;color:#fff;font-weight:800;font-size:12px;padding:4px 9px;border-radius:999px;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.35);white-space:nowrap}
+  #wireDel:hover{background:#dc2626}
+  #wireDel:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
   .hint{position:absolute;top:10px;left:12px;background:rgba(2,6,23,.72);border:1px solid #0b1220;backdrop-filter:blur(6px);padding:8px 10px;border-radius:10px;font-size:12px;color:#cbd5e1;max-width:min(860px,85vw);z-index:3}
 
   .node{position:absolute;min-width:96px;background:#0b1324;border:1px solid #384152;border-radius:14px;box-shadow:0 10px 25px rgba(0,0,0,.3);user-select:none;z-index:2}
@@ -59,13 +65,72 @@
   #venn{display:block;margin:6px auto 0;background:#0b1324;border:1px dashed #374151;border-radius:10px}
   #guide{margin-top:14px}
   #guide h2{font-size:13px;margin:0 0 8px;color:#9ca3af}
-  .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .guide-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
   .gcard{background:#0b1324;border:1px solid #374151;border-radius:10px;padding:8px}
   .gcap{font-size:12px;color:#cbd5e1;margin-top:6px}
-  .gcan{display:block;margin:0 auto;border:1px dashed #374151;border-radius:8px}
+  .gcan{display:block;max-width:100%;margin:0 auto;border:1px dashed #374151;border-radius:8px}
 
   footer{height:40px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 12px;border-top:1px solid #1f2937;background:#0b1220;font-size:12px;color:#cbd5e1}
   #quizBar{display:none;gap:6px;flex-wrap:wrap}
+
+  /* ===== ゲート記号 ===== */
+  .sym{display:block;overflow:visible}
+  .sym .shape{fill:#111c33;stroke:#e2e8f0;stroke-width:2.4;stroke-linejoin:round}
+  .sym .arc2{fill:none;stroke:#e2e8f0;stroke-width:2.4}
+  .sym .lead{fill:none;stroke:#94a3b8;stroke-width:2.4;stroke-linecap:round;transition:stroke .12s}
+  .sym .lead.hi{stroke:#ff7eb6}
+  .sym .nm{fill:#e2e8f0;font-weight:800;font-size:9.5px;text-anchor:middle;dominant-baseline:central;font-family:inherit}
+  .item .sym{flex:none}
+  .mini-toggle{flex:none;width:40px;height:22px;display:flex;align-items:center;justify-content:center}
+  .mini-toggle i{display:block;width:26px;height:14px;border-radius:999px;border:1px solid #475569;background:#111827;position:relative}
+  .mini-toggle i::after{content:"";position:absolute;top:2px;left:2px;width:8px;height:8px;border-radius:50%;border:1.5px solid #fff}
+  .mini-led{flex:none;width:40px;height:22px;display:flex;align-items:center;justify-content:center}
+  .mini-led i{display:block;width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#ff6d6d,#b91c1c 70%)}
+  .node.gate .body{gap:0;padding:8px 8px 10px}
+  .node.gate .pins{gap:13.5px}
+  .gsym{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .gsym b{font-size:13px;letter-spacing:.04em}
+  .gcard.wide .gsym{justify-content:center}
+
+  /* ===== 真理値表（フローティング） ===== */
+  #ttPanel{position:absolute;top:10px;right:12px;z-index:5;width:max-content;min-width:200px;max-width:min(460px,92%);background:rgba(11,19,36,.94);border:1px solid #475569;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,.35);backdrop-filter:blur(6px);color:#e5e7eb;font-size:12px}
+  #ttPanel .tt-head{display:flex;align-items:center;gap:6px;padding:6px 6px 6px 10px;cursor:move;user-select:none;touch-action:none;border-bottom:1px solid #334155}
+  #ttPanel.collapsed .tt-head{border-bottom:none}
+  #ttPanel .tt-title{font-weight:800;font-size:12px;flex:1;white-space:nowrap}
+  #ttPanel .tt-btn{appearance:none;border:1px solid #374151;background:#0b1324;color:#e5e7eb;border-radius:7px;font-size:11px;font-weight:700;padding:3px 8px;cursor:pointer;white-space:nowrap}
+  #ttPanel .tt-btn.on{background:var(--neon);border-color:var(--neon);color:#111827}
+  #ttPanel .tt-btn:focus-visible{outline:2px solid #60a5fa;outline-offset:1px}
+  #ttPanel.collapsed .tt-body,#ttPanel.collapsed .tt-tabs{display:none}
+  #ttPanel .tt-body{padding:8px 10px 10px;max-height:52vh;overflow:auto}
+  .tt{border-collapse:collapse;margin:0 auto;font-variant-numeric:tabular-nums}
+  .tt th,.tt td{padding:3px 8px;text-align:center;border-bottom:1px solid #1f2937}
+  .tt th{color:#9ca3af;font-weight:700;font-size:11px;vertical-align:bottom}
+  .tt .sep{border-left:2px solid #475569}
+  .tt td.v1{color:#ff7eb6;font-weight:800}
+  .tt td.v0{color:#64748b}
+  .tt td.none{color:#475569}
+  .tt td.bad{background:rgba(239,68,68,.35);color:#fff}
+  .tt tr.cur td{background:rgba(204,255,0,.14)}
+  .tt tr.cur td.bad{background:rgba(239,68,68,.5)}
+  .tt th .sym{margin:0 auto 2px}
+  .tt-note{color:#94a3b8;font-size:11px;margin-top:6px;line-height:1.5;max-width:260px}
+  .tt-sum{margin-top:6px;font-weight:700;font-size:11px}
+  .tt-view{display:flex;gap:4px;margin-bottom:8px}
+  .kmaps{display:grid;gap:10px 14px}
+  .kmaps.two{grid-template-columns:repeat(2,max-content)}
+  .kmap-cap{font-size:11px;font-weight:700;color:#cbd5e1;margin:0 0 3px;text-align:center}
+  .kmap th,.kmap td{padding:4px 7px;border:1px solid #334155}
+  .kmap th{font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.03em}
+  .kmap th.corner{font-size:10px;color:#94a3b8;white-space:nowrap;padding:2px 5px}
+  .kmap td.v1{background:rgba(255,126,182,.2)}
+  .kmap td.cur{outline:2px solid var(--neon);outline-offset:-2px}
+  .tt-sub{margin:10px 0 4px;color:#9ca3af;font-size:11px;font-weight:700}
+
+  /* 名前を隠す（形だけで見分ける練習） */
+  #btnHideNames.active{background:#fbbf24;border-color:#fbbf24;color:#111827}
+  .hide-names .gname{font-size:0 !important}
+  .hide-names .gname::after{content:"？";font-size:13px;color:#fbbf24}
+  .hide-names .sym .nm{display:none}
 </style>
 </head>
 <body>
@@ -85,6 +150,7 @@
     <button class="btn quiz" data-quiz="8">8</button>
     <button class="btn good" id="btnCheck">判定</button>
   </div>
+  <button class="btn" id="btnHideNames" title="名前を隠して、記号の形だけで素子を見分ける練習ができます">名前を隠す</button>
   <button class="btn" id="btnReset">リセット</button>
   <button class="btn" id="btnExport">エクスポート</button>
   <button class="btn" id="btnImport">インポート</button>
@@ -92,16 +158,16 @@
 <div class="layout">
   <aside id="palette">
     <div style="font-size:13px;color:#9ca3af;margin:8px 0 6px">パレット（ドラッグしてキャンバスへ）</div>
-    <div class="item" draggable="true" data-type="toggle"><div class="xgate"></div>トグル</div>
-    <div class="item" draggable="true" data-type="led"><div class="xgate"></div>LED</div>
-    <div class="item" draggable="true" data-type="NOT"><div class="xgate"></div>NOT</div>
-    <div class="item" draggable="true" data-type="OR"><div class="xgate"></div>OR</div>
-    <div class="item" draggable="true" data-type="AND"><div class="xgate"></div>AND</div>
-    <div class="item" draggable="true" data-type="XOR"><div class="xgate"></div>XOR</div>
-    <div class="item" draggable="true" data-type="NAND"><div class="xgate"></div>NAND</div>
+    <div class="item" draggable="true" data-type="toggle"><span class="mini-toggle"><i></i></span>入力(toggle)</div>
+    <div class="item" draggable="true" data-type="led"><span class="mini-led"><i></i></span>LED(💡)</div>
+    <div class="item" draggable="true" data-type="NOT"><span data-sym="NOT" data-w="40"></span><span class="gname">NOT</span></div>
+    <div class="item" draggable="true" data-type="OR"><span data-sym="OR" data-w="40"></span><span class="gname">OR</span></div>
+    <div class="item" draggable="true" data-type="AND"><span data-sym="AND" data-w="40"></span><span class="gname">AND</span></div>
+    <div class="item" draggable="true" data-type="XOR"><span data-sym="XOR" data-w="40"></span><span class="gname">XOR</span></div>
+    <div class="item" draggable="true" data-type="NAND"><span data-sym="NAND" data-w="40"></span><span class="gname">NAND</span></div>
     <div style="margin-top:10px;color:#9ca3af;font-size:12px;line-height:1.6">
       <b>配線</b> 出力ピン（右）→入力ピン（左）の順にクリック。<br>
-      <b>削除</b> ノード選択→Delete/Backspace。配線はクリックで選択→Delete/Backspace、またはダブルクリック。<br>
+      <b>素子の削除</b> 素子を選択→Delete/Backspace。<br><b>配線の削除</b> 配線をクリック→「✕ 配線を削除」ボタン（Delete/Backspace・ダブルクリックでも可）。入力ピンにつなぎ直すと古い配線は自動で外れます。<br>
       <b>移動</b> ノード上部バーをドラッグ（ESCで接続キャンセル）。<br>
       <b>クリック追加</b> パレットをクリックでも中央に追加されます。
     </div>
@@ -109,21 +175,30 @@
   <main id="stage-wrap">
     <div id="stage"></div>
     <svg id="wires"></svg>
-    <div id="hint" class="hint">フリーモード：A/B/C のトグルを配線して LED（ラベルは Out 推奨）へつなぐと、右上にベン図（赤い斜線）で出力領域を描きます。LEDが複数ある場合は上下2分割で表示。クイズに切り替えると、期待領域（黄緑）とあなたの回路（赤ハッチ）を重ねて判定できます。</div>
+    <button id="wireDel" type="button">✕ 配線を削除</button>
+    <div id="ttPanel" role="dialog" aria-label="真理値表">
+      <div class="tt-head" id="ttHead">
+        <span class="tt-title">真理値表</span>
+        <span class="tt-tabs"><button class="tt-btn on" data-tt="circuit">回路</button> <button class="tt-btn" data-tt="gates">素子</button></span>
+        <button class="tt-btn" id="ttFold" aria-expanded="true" title="折りたたむ">▾</button>
+      </div>
+      <div class="tt-body" id="ttBody"></div>
+    </div>
+    <div id="hint" class="hint">パレットから素子をドラッグして回路を作ろう。記号の形と名前をセットで覚えよう。</div>
   </main>
   <aside id="viz">
     <div style="font-size:13px;color:#9ca3af;margin:8px 0 6px">ベン図（Out=1の領域）</div>
     <canvas id="venn" width="280" height="280"></canvas>
-    <div id="vennCaption" class="cap">LEDを接続するとベン図に斜線で表示します（フリーモード）</div>
+    <div id="vennCaption" class="cap">黄緑＝問題の領域 ／ 赤ハッチ＝あなたの回路（LEDにつないだ出力）</div>
 
     <div id="guide">
-      <h2>素子ガイド（Venn 図で見る Out=1 の領域）</h2>
+      <h2>素子ガイド（記号とベン図で見る Out=1 の領域）</h2>
       <div class="guide-grid">
-        <div class="gcard"><canvas id="gAND" class="gcan" width="150" height="120"></canvas><div class="gcap">AND：両方1のところ</div></div>
-        <div class="gcard"><canvas id="gOR" class="gcan" width="150" height="120"></canvas><div class="gcap">OR：どちらか1のところ</div></div>
-        <div class="gcard"><canvas id="gXOR" class="gcan" width="150" height="120"></canvas><div class="gcap">XOR：ちょうど1つのところ</div></div>
-        <div class="gcard"><canvas id="gNAND" class="gcan" width="150" height="120"></canvas><div class="gcap">NAND：ANDの反対（交わり以外）</div></div>
-        <div class="gcard" style="grid-column:1 / span 2"><canvas id="gNOT" class="gcan" width="310" height="120"></canvas><div class="gcap">NOT：Aが0のところ（Aの外側）</div></div>
+        <div class="gcard"><div class="gsym"><span data-sym="AND" data-w="56"></span><b class="gname">AND</b></div><canvas id="gAND" class="gcan" width="150" height="120"></canvas><div class="gcap"><span class="gname">AND</span>：両方1のところ</div></div>
+        <div class="gcard"><div class="gsym"><span data-sym="OR" data-w="56"></span><b class="gname">OR</b></div><canvas id="gOR" class="gcan" width="150" height="120"></canvas><div class="gcap"><span class="gname">OR</span>：どちらか1のところ</div></div>
+        <div class="gcard"><div class="gsym"><span data-sym="XOR" data-w="56"></span><b class="gname">XOR</b></div><canvas id="gXOR" class="gcan" width="150" height="120"></canvas><div class="gcap"><span class="gname">XOR</span>：ちょうど1つのところ</div></div>
+        <div class="gcard"><div class="gsym"><span data-sym="NAND" data-w="56"></span><b class="gname">NAND</b></div><canvas id="gNAND" class="gcan" width="150" height="120"></canvas><div class="gcap"><span class="gname">NAND</span>：ANDの反対（交わり以外）</div></div>
+        <div class="gcard wide" style="grid-column:1 / span 2"><div class="gsym"><span data-sym="NOT" data-w="56"></span><b class="gname">NOT</b></div><canvas id="gNOT" class="gcan" width="310" height="120"></canvas><div class="gcap"><span class="gname">NOT</span>：Aが0のところ（Aの外側）</div></div>
       </div>
     </div>
   </aside>
@@ -153,9 +228,31 @@
       vennCaption.textContent='黄緑＝問題の領域 ／ 赤ハッチ＝あなたの回路（LEDにつないだ出力）';
       renderVennById(currentQuizId);
     }
+    renderTT();
   }
   btnModeFree.addEventListener('click',()=>setMode('free'));
   btnModeQuiz.addEventListener('click',()=>setMode('quiz'));
+
+  // ====== ゲート記号（SVG） ======
+  // viewBox 64x44 ／ 入力線 y=11,33（1入力は y=22）／ 出力線 y=22
+  const GATE_SHAPES={
+    AND:{ins:[[0,11,18],[0,33,18]], body:'<path class="shape" d="M18 4 H34 A18 18 0 0 1 34 40 H18 Z"/>', out:[52,64], nm:[31,22]},
+    NAND:{ins:[[0,11,18],[0,33,18]], body:'<path class="shape" d="M18 4 H30 A18 18 0 0 1 30 40 H18 Z"/><circle class="shape" cx="52" cy="22" r="4"/>', out:[56,64], nm:[32,22], nmSize:8},
+    OR:{ins:[[0,11,17],[0,33,17]], body:'<path class="shape" d="M14 4 H28 Q46 6 54 22 Q46 38 28 40 H14 Q22 22 14 4 Z"/>', out:[54,64], nm:[31,22]},
+    XOR:{ins:[[0,11,14.5],[0,33,14.5]], body:'<path class="arc2" d="M12 4 Q20 22 12 40"/><path class="shape" d="M18 4 H30 Q48 6 56 22 Q48 38 30 40 H18 Q26 22 18 4 Z"/>', out:[56,64], nm:[35,22]},
+    NOT:{ins:[[0,22,16]], body:'<path class="shape" d="M16 7 L44 22 L16 37 Z"/><circle class="shape" cx="48" cy="22" r="4"/>', out:[52,64], nm:[25,22], nmSize:7}
+  };
+  function gateSVG(type,w,withName){
+    const g=GATE_SHAPES[type]; if(!g) return '';
+    const h=Math.round(w*44/64*100)/100;
+    const leads=g.ins.map((l,i)=>`<path class="lead lead-in${i}" d="M${l[0]} ${l[1]} H${l[2]}"/>`).join('')+`<path class="lead lead-out" d="M${g.out[0]} 22 H${g.out[1]}"/>`;
+    const nm=withName?`<text class="nm" x="${g.nm[0]}" y="${g.nm[1]}"${g.nmSize?` style="font-size:${g.nmSize}px"`:''}>${type}</text>`:'';
+    return `<svg class="sym" width="${w}" height="${h}" viewBox="0 0 64 44" role="img" aria-label="${type}ゲートの記号">${leads}${g.body}${nm}</svg>`;
+  }
+  document.querySelectorAll('[data-sym]').forEach(el=>{ el.outerHTML=gateSVG(el.dataset.sym, +el.dataset.w||48, false); });
+
+  const btnHideNames=document.getElementById('btnHideNames');
+  btnHideNames.addEventListener('click',()=>{ const on=document.body.classList.toggle('hide-names'); btnHideNames.classList.toggle('active',on); btnHideNames.textContent=on?'名前を表示':'名前を隠す'; });
 
   // ====== 基本状態 ======
   let NODE_ID=1, WIRE_ID=1;
@@ -171,9 +268,9 @@
   function updateStatus(){ statusEl.textContent=`ノード: ${nodes.size} / 配線: ${wires.size}`; }
 
   // ====== ノード生成・UI ======
-  function nodeEl({id,x,y,label}){
-    const el=document.createElement('div'); el.className='node'; el.style.left=x+'px'; el.style.top=y+'px'; el.dataset.id=id;
-    el.innerHTML=`<div class="head"><span>${label||''}</span><span class="pill">#${id}</span></div><div class="body"></div>`;
+  function nodeEl({id,x,y,label,isGate}){
+    const el=document.createElement('div'); el.className='node'+(isGate?' gate':''); el.style.left=x+'px'; el.style.top=y+'px'; el.dataset.id=id;
+    el.innerHTML=`<div class="head"><span${isGate?' class="gname"':''}>${label||''}</span><span class="pill">#${id}</span></div><div class="body"></div>`;
     stage.appendChild(el); enableDrag(el); el.addEventListener('mousedown',()=>selectNode(el)); return el;
   }
   function enableDrag(el){
@@ -196,19 +293,43 @@
   // ====== 配線描画 ======
   function pinCenter(pinEl){ const pr=pinEl.getBoundingClientRect(); const sr=svg.getBoundingClientRect(); return {x: pr.left-sr.left+pr.width/2, y: pr.top-sr.top+pr.height/2}; }
   function bezier(a,b){ const dx=Math.max(40,Math.abs(b.x-a.x)/2); return `M ${a.x} ${a.y} C ${a.x+dx} ${a.y}, ${b.x-dx} ${b.y}, ${b.x} ${b.y}`; }
-  function redrawWire(w){ const nf=nodes.get(w.from.id), nt=nodes.get(w.to.id); if(!nf||!nt) return; const pf=nf.outputs[w.from.out].el, pt=nt.inputs[w.to.in].el; const a=pinCenter(pf), b=pinCenter(pt); w.el.setAttribute('d', bezier(a,b)); }
-  function redrawWires(){ wires.forEach(redrawWire); }
+  function redrawWire(w){ const nf=nodes.get(w.from.id), nt=nodes.get(w.to.id); if(!nf||!nt) return; const pf=nf.outputs[w.from.out].el, pt=nt.inputs[w.to.in].el; const a=pinCenter(pf), b=pinCenter(pt); const d=bezier(a,b); w.el.setAttribute('d', d); w.hit.setAttribute('d', d); }
+  function redrawWires(){ wires.forEach(redrawWire); placeWireDel(); }
+  const wireDel=document.getElementById('wireDel');
+  function placeWireDel(){
+    const w=selectedWireId && wires.get(selectedWireId);
+    if(!w){ wireDel.style.display='none'; return; }
+    const L=w.el.getTotalLength(); const m=w.el.getPointAtLength(L/2);
+    const sr=svg.getBoundingClientRect(), wr=wrap.getBoundingClientRect();
+    wireDel.style.left=(m.x+sr.left-wr.left)+'px'; wireDel.style.top=(m.y+sr.top-wr.top)+'px'; wireDel.style.display='block';
+  }
+  wireDel.addEventListener('mousedown',e=>e.stopPropagation());
+  wireDel.addEventListener('click',e=>{ e.stopPropagation(); if(selectedWireId) removeWire(selectedWireId); });
   function refreshLinkedPins(){ document.querySelectorAll('.pin.linked').forEach(p=>p.classList.remove('linked')); wires.forEach(w=>{ const nf=nodes.get(w.from.id); const nt=nodes.get(w.to.id); if(nf&&nf.outputs[w.from.out]) nf.outputs[w.from.out].el.classList.add('linked'); if(nt&&nt.inputs[w.to.in]) nt.inputs[w.to.in].el.classList.add('linked'); }); }
-  function clearWireSelection(){ document.querySelectorAll('#wires path.selected').forEach(p=>p.classList.remove('selected')); selectedWireId=null; }
-  function selectWire(id){ clearWireSelection(); const w=wires.get(id); if(!w) return; w.el.classList.add('selected'); selectedWireId=id; document.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected')); }
-  function addWire(from,to){ const id=(WIRE_ID++).toString(); const path=document.createElementNS('http://www.w3.org/2000/svg','path'); path.dataset.id=id; svg.appendChild(path); const w={id,el:path,from:{id:from.nodeId,out:from.outIndex},to:{id:to.nodeId,in:to.inIndex}}; wires.set(id,w); path.addEventListener('click',e=>{ selectWire(id); e.stopPropagation(); }); path.addEventListener('dblclick',e=>{ removeWire(id); e.stopPropagation(); }); redrawWire(w); refreshLinkedPins(); updateStatus(); simulate(); }
-  function removeWire(id){ const w=wires.get(id); if(!w) return; w.el.remove(); wires.delete(id); refreshLinkedPins(); clearWireSelection(); updateStatus(); simulate(); }
+  function clearWireSelection(){ document.querySelectorAll('#wires path.selected').forEach(p=>p.classList.remove('selected')); selectedWireId=null; if(typeof wireDel!=='undefined') wireDel.style.display='none'; }
+  function selectWire(id){ clearWireSelection(); const w=wires.get(id); if(!w) return; w.el.classList.add('selected'); selectedWireId=id; document.querySelectorAll('.node.selected').forEach(n=>n.classList.remove('selected')); placeWireDel(); }
+  function addWire(from,to){
+    if(from.nodeId===to.nodeId) return;
+    // 同じ入力ピンに既にある配線は置き換える（1つの入力に1本）
+    [...wires.values()].forEach(w=>{ if(w.to.id===to.nodeId && w.to.in===to.inIndex) removeWire(w.id); });
+    const id=(WIRE_ID++).toString(); const NS='http://www.w3.org/2000/svg';
+    const g=document.createElementNS(NS,'g'); g.dataset.id=id;
+    const hit=document.createElementNS(NS,'path'); hit.setAttribute('class','hit');
+    const path=document.createElementNS(NS,'path'); path.setAttribute('class','vis'); path.dataset.id=id;
+    g.appendChild(hit); g.appendChild(path); svg.appendChild(g);
+    const w={id,el:path,hit,g,from:{id:from.nodeId,out:from.outIndex},to:{id:to.nodeId,in:to.inIndex}}; wires.set(id,w);
+    hit.addEventListener('mousedown',e=>e.stopPropagation());
+    hit.addEventListener('click',e=>{ selectWire(id); e.stopPropagation(); });
+    hit.addEventListener('dblclick',e=>{ removeWire(id); e.stopPropagation(); }); redrawWire(w); refreshLinkedPins(); updateStatus(); simulate(); }
+  function removeWire(id){ const w=wires.get(id); if(!w) return; w.g.remove(); wires.delete(id); refreshLinkedPins(); clearWireSelection(); updateStatus(); simulate(); }
 
   // ====== ノード種類 ======
-  function nextToggleLabel(){ const order=['A','B','C']; const used=new Set(); nodes.forEach(n=>{ if(n.type==='toggle'){ const t=n.el.querySelector('.head span').textContent.trim(); if(order.includes(t)) used.add(t); }}); for(const s of order){ if(!used.has(s)) return s; } const extra=['D','E','F','G']; return extra[(Math.random()*extra.length)|0]; }
+  const TOGGLE_LETTERS='ABCDEFGHIJKLMN'.split('');
+  function toggleLabelsOnStage(){ const ls=[]; nodes.forEach(n=>{ if(n.type==='toggle') ls.push(n.el.querySelector('.head span').textContent.trim()); }); return ls.sort((a,b)=>{ const ia=TOGGLE_LETTERS.indexOf(a), ib=TOGGLE_LETTERS.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib) || a.localeCompare(b); }); }
+  function nextToggleLabel(){ const used=new Set(toggleLabelsOnStage()); for(const l of TOGGLE_LETTERS){ if(!used.has(l)) return l; } return 'X'+(used.size+1); }
 
   function addNode(type,x,y,opts={}){
-    const id=(NODE_ID++).toString(); const base={id,type,x,y,label:opts.label||type,inputs:[],outputs:[],value:false}; const el=nodeEl({id,x,y,label:opts.label||type}); base.el=el; const body=el.querySelector('.body');
+    const id=(NODE_ID++).toString(); const base={id,type,x,y,label:opts.label||type,inputs:[],outputs:[],value:false}; const isGate=!!GATE_SHAPES[type]; const el=nodeEl({id,x,y,label:isGate?type:(opts.label||type),isGate}); base.el=el; const body=el.querySelector('.body');
     function makeIn(){ const p=document.createElement('div'); p.className='pin in'; return p; }
     function makeOut(){ const p=document.createElement('div'); p.className='pin out'; return p; }
     if(type==='toggle'){
@@ -225,7 +346,8 @@
       const inp=makeIn(); left.appendChild(inp); base.inputs.push({el:inp}); base.ledEl=led; base.value=false;
     } else {
       const left=document.createElement('div'); left.className='pins'; body.appendChild(left);
-      const label=document.createElement('div'); label.className='gate-label'; label.textContent=type; body.appendChild(label);
+      const symWrap=document.createElement('div'); symWrap.innerHTML=gateSVG(type,80,true); body.appendChild(symWrap);
+      const symEl=symWrap.firstElementChild; base.leadIn=[...symEl.querySelectorAll('[class*="lead-in"]')]; base.leadOut=symEl.querySelector('.lead-out');
       const right=document.createElement('div'); right.className='pins'; body.appendChild(right);
       const nin=(type==='NOT')?1:2; for(let i=0;i<nin;i++){ const ip=makeIn(); left.appendChild(ip); base.inputs.push({el:ip}); } const op=makeOut(); right.appendChild(op); base.outputs.push({el:op});
     }
@@ -243,7 +365,7 @@
   // ====== 真理値計算 ======
   function inVal(node,i){ for(const w of wires.values()){ if(w.to.id===node.id && w.to.in===i){ const src=nodes.get(w.from.id); return !!src.value; } } return false; }
   function compute(node){ switch(node.type){ case 'toggle': return !!node.value; case 'led': return !!inVal(node,0); case 'NOT': return !inVal(node,0); case 'AND': return inVal(node,0)&&inVal(node,1); case 'OR': return inVal(node,0)||inVal(node,1); case 'XOR': return !!(inVal(node,0)^inVal(node,1)); case 'NAND': return !(inVal(node,0)&&inVal(node,1)); default: return false; } }
-  function simulate(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } nodes.forEach(n=>{ if(n.type==='led'){ n.ledEl.classList.toggle('on',!!n.value); } }); if(mode==='free'){ renderVennFree(); } else { renderVennById(currentQuizId); } }
+  function simulate(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } nodes.forEach(n=>{ if(n.type==='led'){ n.ledEl.classList.toggle('on',!!n.value); } else if(n.leadOut){ n.leadIn.forEach((p,i)=>p.classList.toggle('hi',!!inVal(n,i))); n.leadOut.classList.toggle('hi',!!n.value); } }); if(mode==='free'){ renderVennFree(); } else { renderVennById(currentQuizId); } renderTT(); }
 
   // ====== DnD ======
   document.querySelectorAll('#palette .item').forEach(it=>{
@@ -260,7 +382,7 @@
   // ====== エクスポート/インポート ======
   function exportJSON(){ return JSON.stringify({ nodes:[...nodes.values()].map(n=>({id:n.id,type:n.type,x:parseInt(n.el.style.left),y:parseInt(n.el.style.top),label:n.el.querySelector('.head span').textContent,value:n.type==='toggle'?!!n.value:undefined})), wires:[...wires.values()].map(w=>({id:w.id,from:w.from,to:w.to})) }, null, 2); }
   function importJSON(json){ const data=JSON.parse(json); clearAll(); const idMap=new Map(); data.nodes.forEach(n=>{ const obj=addNode(n.type,n.x,n.y,{label:n.label,init:n.value}); idMap.set(n.id,obj.id); }); data.wires.forEach(w=>{ addWire({nodeId:idMap.get(w.from.id),outIndex:w.from.out},{nodeId:idMap.get(w.to.id),inIndex:w.to.in}); }); simulate(); }
-  function clearAll(){ nodes.forEach(n=>n.el.remove()); nodes.clear(); wires.forEach(w=>w.el.remove()); wires.clear(); clearWireSelection(); updateStatus(); simulate(); }
+  function clearAll(){ nodes.forEach(n=>n.el.remove()); nodes.clear(); wires.forEach(w=>w.g.remove()); wires.clear(); clearWireSelection(); updateStatus(); simulate(); }
   document.getElementById('btnExport').addEventListener('click',()=>{ const blob=new Blob([exportJSON()],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='circuit.json'; a.click(); });
   document.getElementById('btnImport').addEventListener('click',()=>{ const inp=document.createElement('input'); inp.type='file'; inp.accept='.json,application/json'; inp.onchange=()=>{ const f=inp.files[0]; const r=new FileReader(); r.onload=()=>importJSON(r.result); r.readAsText(f); }; inp.click(); });
   document.getElementById('btnReset').addEventListener('click',()=>{ clearAll(); if(mode==='free'){ vennCaption.textContent='LEDを接続するとベン図に斜線で表示します（フリーモード）'; } else { quizTitleEl.textContent='クイズ：未選択'; } drawVenn({vars:2, fn:()=>false}, venn, null); drawGuideAll(); });
@@ -291,6 +413,7 @@
     const q=quizzes[currentQuizId];
     quizTitleEl.textContent=q.title; hintEl.textContent=q.explain + `（推奨ゲート≤${q.rec}）`;
     renderVennById(currentQuizId);
+    renderTT();
   }));
 
   document.getElementById('btnCheck').addEventListener('click',()=>{
@@ -420,7 +543,36 @@
   }
   function simulateInternal(){ let changed=true,guard=0; while(changed&&guard<32){ changed=false; guard++; nodes.forEach(n=>{ const v=compute(n); if(n.value!==v){ n.value=v; changed=true; } }); } }
 
+  const VENN_CAP_FREE='LEDを接続するとベン図に斜線で表示します（フリーモード）';
+  const VENN_CAP_QUIZ='黄緑＝問題の領域 ／ 赤ハッチ＝あなたの回路（LEDにつないだ出力）';
+  function countToggles(){ let c=0; nodes.forEach(n=>{ if(n.type==='toggle') c++; }); return c; }
+  function wrapText(ctx, text, maxW){ const out=[]; let line=''; for(const ch of text){ if(ctx.measureText(line+ch).width>maxW && line){ out.push(line); line=ch; } else line+=ch; } if(line) out.push(line); return out; }
+  function drawVennNG(){
+    const labels=toggleLabelsOnStage();
+    const ctx=venn.getContext('2d'), W=venn.width, H=venn.height;
+    ctx.clearRect(0,0,W,H);
+    // うすい4つの円（重ね方が足りないことを示す背景）
+    ctx.save(); ctx.globalAlpha=.18; ctx.strokeStyle='#e5e7eb'; ctx.lineWidth=2; ctx.setLineDash([6,5]);
+    [[.38,.36],[.62,.36],[.38,.62],[.62,.62]].forEach(([x,y])=>{ ctx.beginPath(); ctx.arc(W*x,H*y,W*.22,0,Math.PI*2); ctx.stroke(); });
+    ctx.restore();
+    // 中央のメッセージ
+    ctx.fillStyle='rgba(11,19,36,.9)'; ctx.strokeStyle='#ef4444'; ctx.lineWidth=2;
+    const bx=20, by=58, bw=W-40, bh=H-116;
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(bx,by,bw,bh,12) : ctx.rect(bx,by,bw,bh); ctx.fill(); ctx.stroke();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='#ef4444'; ctx.font='800 34px system-ui, sans-serif'; ctx.fillText('NG', W/2, by+34);
+    ctx.fillStyle='#e5e7eb'; ctx.font='700 13px system-ui, sans-serif';
+    ctx.fillText('ベン図で表せるのは3集合まで', W/2, by+68);
+    ctx.fillStyle='#cbd5e1'; ctx.font='12px system-ui, sans-serif';
+    const lines=[`いまの入力：${labels.length}個（${labels.join('・')}）`, ...wrapText(ctx,'→ 真理値表パネルの「カルノー図」で確認しよう', bw-24)];
+    lines.forEach((t,i)=>ctx.fillText(t, W/2, by+94+i*18));
+    ctx.textAlign='start'; ctx.textBaseline='alphabetic';
+    vennCaption.textContent='入力(toggle)が4個以上あるため、ベン図は表示しません。入力を3個以下にすると表示されます。';
+  }
+
   function renderVennFree(){
+    if(countToggles()>3){ drawVennNG(); return; }
+    vennCaption.textContent=VENN_CAP_FREE;
     const leds=listConnectedOutLEDs();
     const rects=getRectsForLEDs(leds.length||1);
     const ctx=venn.getContext('2d');
@@ -431,6 +583,8 @@
 
   // ====== クイズのベン図 ======
   function renderVennById(id){
+    if(countToggles()>3){ drawVennNG(); return; }
+    vennCaption.textContent=VENN_CAP_QUIZ;
     const leds=listConnectedOutLEDs();
     const rects=getRectsForLEDs(leds.length||1);
     const ctx=venn.getContext('2d');
@@ -458,11 +612,155 @@
   function drawGuideNAND(){ const ctx=gc('gNAND'); fillExpect(ctx, (a,b)=> !(a&&b)); }
   function drawGuideNOT(){ const ctx=gc('gNOT'); const w=ctx.canvas.width, h=ctx.canvas.height; const aspect=w/h; const r=(aspect>1.4)? Math.min(h*0.33, w*0.22) : Math.min(w,h)*0.24; const A={x:(aspect>1.4? w*0.42 : w*0.37), y:h*0.5, r:r}, B={x:(aspect>1.4? w*0.58 : w*0.63), y:h*0.5, r:r}; const inside=(p,x,y)=>{ const dx=x-p.x, dy=y-p.y; return (dx*dx+dy*dy)<=p.r*p.r; }; ctx.clearRect(0,0,w,h); ctx.lineWidth=2; ctx.strokeStyle='#e5e7eb'; ctx.fillStyle='rgba(204,255,0,0.55)'; for(let y=0;y<h;y+=1){ for(let x=0;x<w;x+=1){ const a=inside(A,x,y); if((!a)){ ctx.fillRect(x,y,1,1); } } } ctx.beginPath(); ctx.arc(A.x,A.y,A.r,0,Math.PI*2); ctx.stroke(); ctx.beginPath(); ctx.arc(B.x,B.y,B.r,0,Math.PI*2); ctx.stroke(); ctx.fillStyle='#cbd5e1'; ctx.font='12px system-ui'; ctx.fillText('A', A.x-6, A.y-A.r-6); ctx.fillText('B', B.x-6, B.y-B.r-6); }
 
+  // ====== 真理値表（フローティング） ======
+  const ttPanel=document.getElementById('ttPanel');
+  const ttBody=document.getElementById('ttBody');
+  const ttFold=document.getElementById('ttFold');
+  let ttTab='circuit';
+  const cell=(v,extra='')=> v===null ? `<td class="none${extra}">–</td>` : `<td class="v${v}${extra}">${v}</td>`;
+
+  function renderTT(){
+    if(ttPanel.classList.contains('collapsed')) return;
+    ttBody.innerHTML = (ttTab==='gates') ? gatesTableHTML() : circuitTableHTML();
+  }
+
+  function circuitTableHTML(){
+    const q = (mode==='quiz' && currentQuizId) ? quizzes[currentQuizId] : null;
+    const labels = q ? ['A','B','C'].slice(0,q.vars) : toggleLabelsOnStage();
+    if(labels.length===0){
+      return `<div class="tt-note">入力(toggle)を置くと、ここに回路の真理値表が出ます（A, B, C, D… の順に名前が付きます）。</div>`;
+    }
+    const toggles = labels.map(l=>{ const n=findByLabel(l); return (n&&n.type==='toggle')?n:null; });
+    const led = listConnectedOutLEDs()[0] || null;
+    const ready = toggles.every(Boolean) && !!led;
+    const N=labels.length, rows=[];
+    const save = ready ? toggles.map(t=>t.value) : null;
+    const curBits = toggles.map(t=> t? (t.value?1:0) : null);
+    for(let m=0;m<(1<<N);m++){
+      const bits=labels.map((_,i)=> (m>>(N-1-i))&1);   // A が上位ビット：00,01,10,11
+      let act=null;
+      if(ready){ toggles.forEach((t,i)=>{ t.value=!!bits[i]; }); simulateInternal(); act=led.value?1:0; }
+      const exp = q ? (q.spec(...bits)?1:0) : null;
+      rows.push({bits,act,exp,cur: bits.every((b,i)=>curBits[i]===b)});
+    }
+    if(ready){ toggles.forEach((t,i)=>{ t.value=save[i]; }); simulateInternal(); }
+
+    // 4変数以上：カルノー図に切り替え可能（6変数まで）
+    let head='';
+    if(!q && N>=4){
+      const canK = N<=6;
+      const view = canK ? (ttView||'kmap') : 'tt';
+      head = `<div class="tt-view"><button class="tt-btn ${view==='tt'?'on':''}" data-view="tt">真理値表</button>`+
+             (canK?`<button class="tt-btn ${view==='kmap'?'on':''}" data-view="kmap">カルノー図</button>`:'')+`</div>`;
+      if(!canK) head += `<div class="tt-note" style="margin:0 0 6px">カルノー図は6変数まで。いまは${N}変数なので真理値表で表示しています。</div>`;
+      if(view==='kmap') return head + kmapHTML(labels, rows, ready, led);
+    }
+
+    let h=head+'<table class="tt"><thead><tr>'+labels.map(l=>`<th>${l}</th>`).join('')+`<th class="sep">Out${q?'<br>(回路)':''}</th>`+(q?'<th>正解</th>':'')+'</tr></thead><tbody>';
+    let okCount=0;
+    rows.forEach(r=>{
+      const bad = q && r.act!==null && r.act!==r.exp;
+      if(q && r.act!==null && !bad) okCount++;
+      h+=`<tr class="${r.cur?'cur':''}">`+r.bits.map(b=>cell(b)).join('')+cell(r.act, ' sep'+(bad?' bad':''))+(q?cell(r.exp):'')+'</tr>';
+    });
+    h+='</tbody></table>';
+    if(!ready){
+      const miss=[]; labels.forEach((l,i)=>{ if(!toggles[i]) miss.push(l); }); if(!led) miss.push('Out（LEDに配線）');
+      h+=`<div class="tt-note">${miss.join('・')} をそろえると「Out」列が埋まります。</div>`;
+    }else if(q){
+      h+=`<div class="tt-sum">${okCount===rows.length?'✅ ':''}一致 ${okCount} / ${rows.length} 行</div>`;
+    }
+    h+=`<div class="tt-note">色付きの行＝いまの入力の状態</div>`;
+    return h;
+  }
+
+  let ttView=null; // null=自動（4変数以上はカルノー図）
+  ttBody.addEventListener('click',e=>{ const b=e.target.closest('[data-view]'); if(!b) return; ttView=b.dataset.view; renderTT(); });
+
+  function kmapHTML(labels, rows, ready, led){
+    const N=labels.length, gray=[[0,0],[0,1],[1,1],[1,0]];
+    const extraN=N-4;
+    const extras = extraN===0 ? [[]] : extraN===1 ? [[0],[1]] : gray;
+    const exL = labels.slice(4).join('');
+    const idx = bits => bits.reduce((m,b)=>(m<<1)|b, 0);
+    const rowL = labels[0]+labels[1], colL = labels[2]+labels[3];
+    let h = `<div class="kmaps${extras.length>1?' two':''}">`;
+    extras.forEach(ex=>{
+      h += '<div>';
+      if(extraN>0) h += `<div class="kmap-cap">${exL} = ${ex.join('')}</div>`;
+      h += `<table class="tt kmap"><thead><tr><th class="corner">${rowL}＼${colL}</th>`+gray.map(c=>`<th>${c.join('')}</th>`).join('')+'</tr></thead><tbody>';
+      gray.forEach(r=>{
+        h += `<tr><th>${r.join('')}</th>`;
+        gray.forEach(c=>{ const row=rows[idx([...r,...c,...ex])]; h += cell(row.act, row.cur?' cur':''); });
+        h += '</tr>';
+      });
+      h += '</tbody></table></div>';
+    });
+    h += '</div>';
+    if(!ready) h += `<div class="tt-note">${led?'':'Out（LEDに配線）をつなぐと'}マスが埋まります。</div>`;
+    h += `<div class="tt-note">行・列は 00→01→11→10（隣どうしは1ビットだけ違う順）。ピンクのマス＝Out=1、黄緑の枠＝いまの入力の状態。</div>`;
+    return h;
+  }
+
+  function gatesTableHTML(){
+    const g2=[['AND',(a,b)=>a&b],['OR',(a,b)=>a|b],['XOR',(a,b)=>a^b],['NAND',(a,b)=>1-(a&b)]];
+    const head=name=>`<th>${gateSVG(name,30,false)}<span class="gname">${name}</span></th>`;
+    let h='<table class="tt"><thead><tr><th>A</th><th>B</th>'+g2.map((g,i)=>head(g[0]).replace('<th>', i===0?'<th class="sep">':'<th>')).join('')+'</tr></thead><tbody>';
+    for(let m=0;m<4;m++){ const a=(m>>1)&1, b=m&1; h+='<tr>'+cell(a)+cell(b)+g2.map((g,i)=>cell(g[1](a,b), i===0?' sep':'')).join('')+'</tr>'; }
+    h+='</tbody></table><div class="tt-sub">1入力</div>';
+    h+='<table class="tt"><thead><tr><th>A</th>'+head('NOT').replace('<th>','<th class="sep">')+'</tr></thead><tbody>';
+    [0,1].forEach(a=>{ h+='<tr>'+cell(a)+cell(1-a,' sep')+'</tr>'; });
+    h+='</tbody></table>';
+    return h;
+  }
+
+  document.querySelectorAll('#ttPanel [data-tt]').forEach(b=>b.addEventListener('click',()=>{
+    ttTab=b.dataset.tt; document.querySelectorAll('#ttPanel [data-tt]').forEach(x=>x.classList.toggle('on',x===b)); renderTT();
+  }));
+  ttFold.addEventListener('click',()=>{
+    const c=ttPanel.classList.toggle('collapsed');
+    ttFold.textContent=c?'▸':'▾'; ttFold.title=c?'ひらく':'折りたたむ'; ttFold.setAttribute('aria-expanded',String(!c));
+    if(!c) renderTT();
+    keepTTInside();
+  });
+
+  // ドラッグ（ヘッダーをつかんで移動、キャンバス内にとどめる）
+  function keepTTInside(){
+    if(!ttPanel.style.left) return;
+    const W=wrap.clientWidth, H=wrap.clientHeight;
+    const x=Math.min(Math.max(0,parseFloat(ttPanel.style.left)), Math.max(0,W-ttPanel.offsetWidth));
+    const y=Math.min(Math.max(0,parseFloat(ttPanel.style.top)), Math.max(0,H-ttPanel.offsetHeight));
+    ttPanel.style.left=x+'px'; ttPanel.style.top=y+'px';
+  }
+  (()=>{
+    const head=document.getElementById('ttHead');
+    let ox=0,oy=0,pid=null;
+    head.addEventListener('pointerdown',e=>{
+      if(e.target.closest('button')) return;
+      const pr=ttPanel.getBoundingClientRect();
+      ox=e.clientX-pr.left; oy=e.clientY-pr.top; pid=e.pointerId;
+      try{ head.setPointerCapture(pid); }catch{}
+      e.preventDefault();
+    });
+    head.addEventListener('pointermove',e=>{
+      if(pid===null) return;
+      const wr=wrap.getBoundingClientRect();
+      ttPanel.style.right='auto';
+      ttPanel.style.left=(e.clientX-wr.left-ox)+'px';
+      ttPanel.style.top=(e.clientY-wr.top-oy)+'px';
+      keepTTInside();
+    });
+    const end=()=>{ if(pid!==null){ try{ head.releasePointerCapture(pid); }catch{} pid=null; } };
+    head.addEventListener('pointerup',end); head.addEventListener('pointercancel',end);
+    window.addEventListener('resize',keepTTInside);
+  })();
+
   // ====== 初期化 ======
   drawGuideAll();
   drawVenn({vars:2, fn:()=>false}, venn, null);
   setMode('free');
 })();
 </script>
-</body>
-</html>
+
+
+</body></html>
