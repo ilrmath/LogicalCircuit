@@ -64,8 +64,33 @@
   .toggle.on .knob{left:22px;background:#ff7eb6}
 
   .led{width:18px;height:18px;border-radius:50%;background:#1f2937;border:2px solid #0b1220;box-shadow:inset 0 0 14px rgba(0,0,0,.5)}
-  .node.lamp .head span:first-child::after{content:"💡";margin-left:5px;font-size:13px;display:inline-block;transition:filter .15s}
-  .node.lamp.lit .head span:first-child::after{filter:drop-shadow(0 0 5px rgba(250,204,21,.95))}
+  /* 凡例（下部バー） */
+  #legend{display:flex;align-items:center;gap:14px;padding:3px 12px;border:1px solid #334155;border-radius:999px;background:#0f172a;white-space:nowrap}
+  #legend .lg-title{font-weight:800;color:#94a3b8;font-size:11px}
+  #legend .lg-item{display:inline-flex;align-items:center;gap:6px;color:#e5e7eb}
+  #legend .lg-line{fill:none;stroke-width:4;stroke-linecap:round}
+  #legend .lg-line.one{stroke:#ff7eb6;filter:drop-shadow(0 0 2px rgba(255,126,182,.8))}
+  #legend .lg-line.zero{stroke:#60a5fa}
+  #legend .lg-one{color:#ff7eb6;font-size:13px}
+  #legend .lg-zero{color:#60a5fa;font-size:13px}
+  #legend .lg-bulb{filter:drop-shadow(0 0 4px #fde047) drop-shadow(0 0 8px #facc15)}
+  @media (max-width:1100px){ #legend .lg-title{display:none} #legend{gap:10px} }
+
+  /* ランプカード：OFF=消灯（灰色）／ON=強く発光 */
+  .node.lamp{min-width:124px;transition:box-shadow .2s, border-color .2s, background .2s}
+  .node.lamp .head{gap:14px}
+  .node.lamp .head span:first-child::after{content:"💡";display:inline-block;margin:0 6px 0 8px;font-size:15px;line-height:1;padding:4px;border-radius:50%;vertical-align:middle;filter:grayscale(1) brightness(.55);opacity:.6;transition:filter .2s, opacity .2s, transform .2s, background .2s}
+  .node.lamp.lit{border-color:#facc15;background:radial-gradient(120% 90% at 50% 0%,#4a3a07 0%,#1c1a0e 55%,#0b1324 100%);box-shadow:0 0 0 2px rgba(250,204,21,.65),0 0 22px 6px rgba(250,204,21,.55),0 0 60px 18px rgba(250,204,21,.28),0 10px 25px rgba(0,0,0,.3);animation:lampCard 1.4s ease-in-out infinite}
+  .node.lamp.lit .head{border-bottom-color:#fde047}
+  .node.lamp.lit .head span:first-child{color:#fef9c3;text-shadow:0 0 8px rgba(253,224,71,.9)}
+  .node.lamp.lit .head span:first-child::after{opacity:1;transform:scale(1.35);filter:brightness(1.25) saturate(1.3) drop-shadow(0 0 3px #fff7ae) drop-shadow(0 0 8px #fde047) drop-shadow(0 0 16px #facc15);background:radial-gradient(circle,rgba(255,251,200,.95) 0%,rgba(253,224,71,.75) 35%,rgba(250,204,21,.25) 60%,rgba(250,204,21,0) 72%);animation:lampPulse 1.4s ease-in-out infinite}
+  .node.lamp.lit .led.on{box-shadow:0 0 14px 4px rgba(239,68,68,.75),0 0 30px 8px rgba(250,204,21,.45),inset 0 0 10px rgba(255,255,255,.35)}
+  @keyframes lampCard{
+    0%,100%{box-shadow:0 0 0 2px rgba(250,204,21,.7),0 0 24px 7px rgba(250,204,21,.6),0 0 64px 20px rgba(250,204,21,.32),0 10px 25px rgba(0,0,0,.3);filter:brightness(1.08)}
+    50%{box-shadow:0 0 0 2px rgba(250,204,21,.4),0 0 14px 3px rgba(250,204,21,.32),0 0 36px 10px rgba(250,204,21,.14),0 10px 25px rgba(0,0,0,.3);filter:brightness(.94)}
+  }
+  @keyframes lampPulse{0%,100%{transform:scale(1.3)}50%{transform:scale(1.45)}}
+  @media (prefers-reduced-motion: reduce){ .node.lamp.lit, .node.lamp.lit .head span:first-child::after{animation:none} }
   .led.on{background:radial-gradient(circle at 50% 35%,#ff6d6d,#b91c1c 60%,#7f1d1d);box-shadow:0 0 18px rgba(239,68,68,.55),inset 0 0 10px rgba(255,255,255,.25)}
 
   /* 右パネル */
@@ -224,6 +249,12 @@
 </div>
 <footer>
   <div id="status">ノード: 0 / 配線: 0</div>
+  <div id="legend" aria-label="凡例">
+    <span class="lg-title">凡例</span>
+    <span class="lg-item"><svg width="34" height="10" aria-hidden="true"><path d="M2 5 H32" class="lg-line one"/></svg>ピンク＝<b class="lg-one">1</b></span>
+    <span class="lg-item"><svg width="34" height="10" aria-hidden="true"><path d="M2 5 H32" class="lg-line zero"/></svg>青＝<b class="lg-zero">0</b></span>
+    <span class="lg-item"><span class="lg-bulb">💡</span>点灯＝Out が1</span>
+  </div>
   <div id="quizTitle">クイズ：未選択</div>
 </footer>
 <script>
